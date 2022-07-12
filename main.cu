@@ -150,7 +150,7 @@ __global__ void global_latency(unsigned int *my_array, int array_length, int ite
 
 		s_tvalue[k] = end_time - start_time;
 	}
-
+	// j = step * iterations * 256
 	my_array[array_length] = j;
 	my_array[array_length + 1] = my_array[j];
 
