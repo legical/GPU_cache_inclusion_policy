@@ -106,9 +106,22 @@ void parametric_measure_global(int N, int iterations, int stride)
 
 	cudaThreadSynchronize();
 
-	for (i = 0; i < 256; i++)
-		printf("%d\t %d\n", h_index[i], h_timeinfo[i]);
+	//读写文件。文件存在则被截断为零长度，不存在则创建一个新文件
+	FILE *fp = fopen("./out/L2data.csv", "w+");
+	if (fp == NULL)
+	{
+		// printf("filename = %s \n", filename);
+		fprintf(stderr, "fopen() failed.\n");
+		exit(EXIT_FAILURE);
+	}
 
+	for (i = 0; i < 256; i++)
+	{
+		printf("%d\t %d\n", h_index[i], h_timeinfo[i]);
+		fprintf(fp, "KernelID,SMnum,Blocknum,BlockID,SMID,Start_time,End_time,Exec_time\n");
+	}
+	fclose(fp);
+	
 	/* free memory on GPU */
 	cudaFree(d_a);
 	cudaFree(d_index);
