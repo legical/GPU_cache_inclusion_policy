@@ -118,10 +118,10 @@ void parametric_measure_global(int N, int iterations, int stride)
 	for (i = 0; i < 256; i++)
 	{
 		printf("%d\t %d\n", h_index[i], h_timeinfo[i]);
-		fprintf(fp, "KernelID,SMnum,Blocknum,BlockID,SMID,Start_time,End_time,Exec_time\n");
+		fprintf(fp, "%d,%d\n",h_index[i],h_timeinfo[i]);
 	}
 	fclose(fp);
-	
+
 	/* free memory on GPU */
 	cudaFree(d_a);
 	cudaFree(d_index);
