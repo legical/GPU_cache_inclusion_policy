@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
+__device__ __inline__ float get_time(int clockRate)
+{
+    clock_t now_clock = clock();
+    return (float)now_clock / clockRate;
+}
+
 __device__ __inline__ void busySleep(clock_t clock_count) {
     clock_t start_clock = clock();
     clock_t clock_offset = 0;

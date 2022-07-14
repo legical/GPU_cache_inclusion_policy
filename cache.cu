@@ -1,10 +1,8 @@
-#include <stdio.h>
+#include "util.cu"
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <unistd.h>
 #include <cuda.h>
-#include "util.cu"
 #include <iostream>
 #include <utility>
 #include <thread>
@@ -26,12 +24,6 @@ void init_order(T *a, int n, int flag)
     {
         a[i] = ((i + strige) % n) * flag;
     }
-}
-
-DATATYPE get_time(int clockRate)
-{
-    clock_t now_clock = clock();
-    return (DATATYPE)now_clock / clockRate;
 }
 
 __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array_L2, DATATYPE **dura)
