@@ -24,7 +24,7 @@ void init_order(T *a, int n, int flag)
 {
     for (int i = 0; i < n; i++)
     {
-        a[i] = ((i + stride) % n) * flag;
+        a[i] = ((i + strige) % n) * flag;
     }
 }
 
@@ -137,8 +137,8 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     DATATYPE *GPU_array_L2;
     cudaMalloc((void **)&GPU_array_L1, L1_SIZE);
     cudaMalloc((void **)&GPU_array_L2, sizeof(DATATYPE) * L2_SIZE);
-    cudaMemcpy(GPU_array_L1, array_L1, L1_SIZE);
-    cudaMemcpy(GPU_array_L2, array_L2, sizeof(DATATYPE) * L2_SIZE);
+    cudaMemcpy(GPU_array_L1, array_L1, L1_SIZE,cudaMemcpyHostToDevice);
+    cudaMemcpy(GPU_array_L2, array_L2, sizeof(DATATYPE) * L2_SIZE,cudaMemcpyHostToDevice);
 
     cudaFuncSetAttribute(cache, cudaFuncAttributeMaxDynamicSharedMemorySize, SHARED_SIZE);
 
