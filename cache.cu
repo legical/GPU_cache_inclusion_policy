@@ -42,7 +42,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     int step = 0;
     __shared__ DATATYPE s_tvalue[L1_SIZE / sizeof(DATATYPE) / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
-    __shared__ DATATYPE fence = 0;
+    __shared__ DATATYPE fence[2];
 
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
@@ -73,7 +73,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     }
 
     //等待L1 hit完毕
-    fence += blockid*threadid;
+    fence[0] += blockid*threadid;
     __threadfence();
 
     // Load L2 cache
@@ -89,7 +89,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         printf("Loading data into L2 cache...\n");
 
     //等待L2 load完毕
-    fence += blockid*threadid;
+    fence[1] += blockid*threadid;
     __threadfence();
 
     // Load L1 cache again
@@ -119,7 +119,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         printf("Loading data into L1 cache again...\n");
 
     //等待L1 load again完毕
-    fence += blockid*threadid;
+    fence[1] += blockid*threadid;
     __threadfence();
 }
 
