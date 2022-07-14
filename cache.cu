@@ -42,6 +42,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     int step = 0;
     __shared__ DATATYPE s_tvalue[L1_SIZE / sizeof(DATATYPE) / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
+    __shared__ DATATYPE fence = 0;
 
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
@@ -68,11 +69,12 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             DATATYPE End_time = get_time(clockRate);
             s_tvalue[index++] = End_time - Start_time;
             printf("First testing L1, %d duration is %.4f\n", step, End_time - Start_time);
-        }
+        }        
     }
 
     //等待L1 hit完毕
-    WAIT_FOR_THE_FINAL_BLOCK;
+    fence += blockid*threadid;
+    __threadfence();
 
     // Load L2 cache
     if (blockid != 0)
@@ -87,7 +89,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         printf("Loading data into L2 cache...\n");
 
     //等待L2 load完毕
-    WAIT_FOR_THE_FINAL_BLOCK;
+    fence += blockid*threadid;
+    __threadfence();
 
     // Load L1 cache again
     if (blockid == 0)
@@ -116,7 +119,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         printf("Loading data into L1 cache again...\n");
 
     //等待L1 load again完毕
-    WAIT_FOR_THE_FINAL_BLOCK;
+    fence += blockid*threadid;
+    __threadfence();
 }
 
 void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
