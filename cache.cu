@@ -136,16 +136,16 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
         dura[i] = (DATATYPE *)malloc(L1_SIZE);
         init_order(dura[i], L1_SIZE / sizeof(DATATYPE), 0);
     }
-
+    printf("init dura array over.\n");
     DATATYPE *GPU_array_L1;
     DATATYPE *GPU_array_L2;
     cudaMalloc((void **)&GPU_array_L1, L1_SIZE);
     cudaMalloc((void **)&GPU_array_L2, sizeof(DATATYPE) * L2_SIZE);
     cudaMemcpy(GPU_array_L1, array_L1, L1_SIZE,cudaMemcpyHostToDevice);
     cudaMemcpy(GPU_array_L2, array_L2, sizeof(DATATYPE) * L2_SIZE,cudaMemcpyHostToDevice);
-
+    printf("init cuda array over.\n");
     cudaFuncSetAttribute(cache, cudaFuncAttributeMaxDynamicSharedMemorySize, SHARED_SIZE);
-
+    printf("init shared memory size over.\n");
     // kernel here
     cache<<<blocks, threads, 32 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
 
@@ -194,7 +194,7 @@ int main()
     array_L1 = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE);
     init_order(array_L1, L1_SIZE / sizeof(DATATYPE), flag);
     init_order(array_L2, L2_SIZE, flag);
-
+    printf("init host array over.\n");
     main_test(clockRate, array_L1, array_L2);
 
     free(array_L1);
