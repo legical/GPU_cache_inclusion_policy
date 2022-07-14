@@ -36,12 +36,11 @@ DATATYPE get_time(int clockRate)
 
 __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array_L2, DATATYPE **dura)
 {
-    int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
+    // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     int i = 0;
     int step = 0;
-    __shared__ DATATYPE s_tvalue[array_num];
+    __shared__ DATATYPE s_tvalue[L1_SIZE / sizeof(DATATYPE) / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
-    // __shared__ DATATYPE s_index[array_num];
 
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
