@@ -191,7 +191,7 @@ int main()
     DATATYPE *array_L1;
     DATATYPE *array_L2;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
-    array_L1 = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE);
+    array_L2 = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE);
     init_order(array_L1, L1_SIZE / sizeof(DATATYPE), flag);
     init_order(array_L2, L2_SIZE, flag);
     printf("init host array over.\n");
