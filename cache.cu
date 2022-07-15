@@ -43,7 +43,10 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         printf("Blcok %d is running in sm %d.\n", blockid, smid);
 
     // L1 hit
-    for (i = threadid; i < L1_SIZE / sizeof(DATATYPE);)
+    i = threadid;
+    printf("Limit is %d .\n", L1_SIZE / sizeof(DATATYPE));
+
+    while ( i < L1_SIZE / sizeof(DATATYPE))
     {
         i = GPU_array_L1[i];
         step++;
