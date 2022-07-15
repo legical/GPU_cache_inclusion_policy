@@ -26,7 +26,7 @@ void init_order(T *a, int n, int flag)
 {
     for (int i = 0; i < n; i++)
     {
-        a[i] = ((i + strige) % n) * flag;
+        a[i] = (i + strige) * flag;
     }
 }
 
