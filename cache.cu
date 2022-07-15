@@ -15,19 +15,6 @@ using namespace std;
 #define SHARED_SIZE 64 * 1024
 #define L2_SIZE 2359296
 #define strige 32 / sizeof(DATATYPE)
-#define WAIT_FOR_THE_FINAL_BLOCK                                      \
-    do                                                                \
-    {                                                                 \
-        __threadfence();                                              \
-        __shared__ int value;                                         \
-        if (threadIdx.x + threadIdx.y == 0)                           \
-            value = 1 + atomicAdd(d_sync_buffer + sync_buffer_id, 1); \
-        __syncthreads();                                              \
-        if (value < gridDim.z * gridDim.y * gridDim.x)                \
-            return;                                                   \
-        if (threadIdx.x + threadIdx.y == 0)                           \
-            d_sync_buffer[sync_buffer_id] = 0;                        \
-    } while (false)
 
 //初始化数组，a[i]=0
 template <class T>
