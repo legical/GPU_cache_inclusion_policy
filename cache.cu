@@ -51,7 +51,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         i = GPU_array_L1[i];
         step++;
-        if (threadid == 0 && blockid == 0)
+        // if (threadid == 0 && blockid == 0)
             // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
 
