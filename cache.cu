@@ -11,11 +11,14 @@ using namespace std;
 
 #define DATATYPE float
 #define L1_MAX_SIZE 131072
-#define L1_SIZE 64 * 1024
-#define SHARED_SIZE 64 * 1024
+//64KB 64 * 1024 = 65536
+#define L1_SIZE 65536
+//64KB 64 * 1024 = 65536
+#define SHARED_SIZE 65536
 #define L2_SIZE 2359296
-#define strige 32 / sizeof(DATATYPE)
-#define L1_limit L1_SIZE / sizeof(DATATYPE)
+#define strige 8
+//L1_SIZE / sizeof(DATATYPE) = 16384
+#define L1_limit 16384
 
 //初始化数组，a[i]=0
 template <class T>
@@ -32,7 +35,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     uint32_t i = 0;
     uint32_t step = 0;
-    __shared__ DATATYPE s_tvalue[L1_SIZE / sizeof(DATATYPE) / strige + 1];
+    __shared__ DATATYPE s_tvalue[L1_limit / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
     __shared__ DATATYPE fence[2];
 
@@ -45,12 +48,12 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
     // L1 hit
     i = threadid;
-    while (i < L1_SIZE / sizeof(DATATYPE))
+    while (i < L1_limit)
     {
         i = GPU_array_L1[i];
         step++;
         if (step % 32 == 0)
-            printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_SIZE / sizeof(DATATYPE));
+            printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
     __syncthreads();
     if (threadid == 0)
@@ -61,7 +64,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         step = 0;
 
-        for (i = threadid; i < L1_SIZE / sizeof(DATATYPE);)
+        for (i = threadid; i < L1_limit;)
         {
             uint32_t index = i;
             DATATYPE Start_time = get_time(clockRate);
@@ -101,7 +104,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         step = 0;
 
-        for (i = threadid; i < L1_SIZE / sizeof(DATATYPE);)
+        for (i = threadid; i < L1_limit;)
         {
             uint32_t index = i;
             DATATYPE Start_time = get_time(clockRate);
@@ -113,7 +116,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         __syncthreads();
         //保存两次的访问时间
-        for (i = threadid; i < L1_SIZE / sizeof(DATATYPE);)
+        for (i = threadid; i < L1_limit;)
         {
             dura[0][i] = s_tvalue[i];
             dura[1][i] = s2_tvalue[i];
@@ -142,7 +145,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     {
         //初始化为0
         dura[i] = (DATATYPE *)malloc(L1_SIZE);
-        init_order(dura[i], L1_SIZE / sizeof(DATATYPE), 0);
+        init_order(dura[i], L1_limit, 0);
     }
     DATATYPE *GPU_array_L1;
     DATATYPE *GPU_array_L2;
@@ -200,7 +203,7 @@ int main()
     DATATYPE *array_L2;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
     array_L2 = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE);
-    init_order(array_L1, L1_SIZE / sizeof(DATATYPE), flag);
+    init_order(array_L1, L1_limit, flag);
     init_order(array_L2, L2_SIZE, flag);
     main_test(clockRate, array_L1, array_L2);
 
