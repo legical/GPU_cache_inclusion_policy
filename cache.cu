@@ -19,7 +19,29 @@ using namespace std;
 #define strige 8
 // L1_SIZE / sizeof(DATATYPE) = 16384
 #define L1_limit 16384
-
+// lock-based
+__device__ volatile int g_mutex = 0;
+ 
+// GPU lock-based synchronization function
+__device__ void __gpu_sync(int goalVal)
+{
+	// thread ID in a block
+	int tid_in_block = getThreadIdInBlock();
+	// only thread 0 is used for synchronization
+	if (tid_in_block == 0)
+	{
+		atomicAdd((int*) &g_mutex, 1);
+ 
+		// only when all blocks add 1 go g_mutex
+		// will g_mutex equal to goalVal
+		while (g_mutex != goalVal)
+		{
+			// Do nothing here
+		}
+	}
+	__syncthreads();
+}
+ 
 //初始化数组，a[i]=0
 template <class T>
 void init_order(T *a, int n, int flag)
@@ -37,7 +59,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t step = 0;
     __shared__ DATATYPE s_tvalue[L1_limit / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
-    __shared__ DATATYPE fence[2];
+    // __shared__ DATATYPE fence[2];
 
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
@@ -55,7 +77,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
 
-    __syncthreads();
+    __gpu_sync(2);
     if (threadid == 0)
         printf("block %d First load L1 cache over.\n", blockid);
 
@@ -80,8 +102,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // if (threadid == 0)
         printf("Block 0 Loading data into L1 cache...\n");
     //等待L1 hit完毕
-    fence[0] += blockid * threadid;
-    __threadfence();
+    // fence[0] += blockid * threadid;
+    // __threadfence();
+    __gpu_sync(4);
 
     // Load L2 cache
     if (blockid != 0)
@@ -97,8 +120,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
     // __syncthreads();
     //等待L2 load完毕
-    fence[1] += blockid * threadid;
-    __threadfence();
+    // fence[1] += blockid * threadid;
+    // __threadfence();
+    __gpu_sync(6);
 
     // Load L1 cache again
     if (blockid == 0)
@@ -117,7 +141,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             if (step % 32 == 0)
                 printf("Second testing L1, %d duration is %.4f\n", index, End_time - Start_time);
         }
-        // __syncthreads();
+        __syncthreads();
         //保存两次的访问时间
         for (i = threadid; i < L1_limit;)
         {
@@ -129,12 +153,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             dura[2][0] = step;
     }
     // __syncthreads();
-    // if (threadid == 0)
-        printf("Loading data into L1 cache again...\n");
+    __gpu_sync(8);
 
     //等待L1 load again完毕
-    fence[1] += blockid * threadid;
-    __threadfence();
+    // fence[1] += blockid * threadid;
+    // __threadfence();
 }
 
 void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
