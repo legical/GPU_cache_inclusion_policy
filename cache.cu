@@ -55,6 +55,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         if (threadid == 0 && blockid == 0)
             printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
+
     __syncthreads();
     if (threadid == 0)
         printf("block %d First load L1 cache over.\n", blockid);
@@ -63,16 +64,17 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     if (blockid == 0)
     {
         step = 0;
-
+        DATATYPE Start_time = get_time(clockRate);
         for (i = threadid; i < L1_limit;)
         {
             uint32_t index = i;
-            DATATYPE Start_time = get_time(clockRate);
+
             i = GPU_array_L1[i];
             step++;
             DATATYPE End_time = get_time(clockRate);
             s_tvalue[index] = End_time - Start_time;
-            printf("First testing L1, %d duration is %.4f\n", index, End_time - Start_time);
+            if (step % 32 == 0)
+                printf("First testing L1, %d duration is %.4f\n", index, End_time - Start_time);
         }
     }
     __syncthreads();
@@ -104,10 +106,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         step = 0;
 
+        DATATYPE Start_time = get_time(clockRate);
         for (i = threadid; i < L1_limit;)
         {
             uint32_t index = i;
-            DATATYPE Start_time = get_time(clockRate);
+
             i = GPU_array_L1[i];
             step++;
             DATATYPE End_time = get_time(clockRate);
@@ -137,7 +140,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
 {
     int blocks = 2;
-    int threads = 128;
+    int threads = 1;
     int dura_num = 3;
     DATATYPE **dura;
     dura = (DATATYPE **)malloc(sizeof(DATATYPE *) * dura_num);
