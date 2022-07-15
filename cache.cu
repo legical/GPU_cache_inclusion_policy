@@ -11,13 +11,13 @@ using namespace std;
 
 #define DATATYPE float
 #define L1_MAX_SIZE 131072
-//64KB 64 * 1024 = 65536
+// 64KB 64 * 1024 = 65536
 #define L1_SIZE 65536
-//64KB 64 * 1024 = 65536
+// 64KB 64 * 1024 = 65536
 #define SHARED_SIZE 65536
 #define L2_SIZE 2359296
 #define strige 8
-//L1_SIZE / sizeof(DATATYPE) = 16384
+// L1_SIZE / sizeof(DATATYPE) = 16384
 #define L1_limit 16384
 
 //初始化数组，a[i]=0
@@ -52,7 +52,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         i = GPU_array_L1[i];
         step++;
-        if (step % 32 == 0)
+        if (threadid == 0 && blockid == 0 && step % 32 == 0)
             printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
     __syncthreads();
