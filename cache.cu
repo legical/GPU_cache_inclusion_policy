@@ -77,7 +77,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
     }
     __syncthreads();
-    if (threadid == 0)
+    // if (threadid == 0)
         printf("Block 0 Loading data into L1 cache...\n");
     //等待L1 hit完毕
     fence[0] += blockid * threadid;
@@ -129,7 +129,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             dura[2][0] = step;
     }
     __syncthreads();
-    if (threadid == 0)
+    // if (threadid == 0)
         printf("Loading data into L1 cache again...\n");
 
     //等待L1 load again完毕
