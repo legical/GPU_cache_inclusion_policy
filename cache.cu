@@ -44,14 +44,12 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
     // L1 hit
     i = threadid;
-    printf("Limit is %d .\n", L1_SIZE / sizeof(DATATYPE));
-
-    while ( i < L1_SIZE / sizeof(DATATYPE))
+    while (i < L1_SIZE / sizeof(DATATYPE))
     {
         i = GPU_array_L1[i];
         step++;
         if (step % 32 == 0)
-            printf("Thread : %d \t step : %d \t i : %d \n", threadid, step, i);
+            printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_SIZE / sizeof(DATATYPE));
     }
     __syncthreads();
     if (threadid == 0)
