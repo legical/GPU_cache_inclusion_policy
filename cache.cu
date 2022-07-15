@@ -55,7 +55,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         i = GPU_array_L1[i];
         step++;
     }
-
+    printf("First load L1 cache over.\n");
     // Load L1 cache
     if (blockid == 0)
     {
@@ -70,7 +70,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             s_tvalue[index++] = End_time - Start_time;
             printf("First testing L1, %d duration is %.4f\n", step, End_time - Start_time);
         }        
-    }
+    }else
+        printf("Loading data into L1 cache...\n");
 
     //等待L1 hit完毕
     fence[0] += blockid*threadid;
