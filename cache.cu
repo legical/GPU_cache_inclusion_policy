@@ -43,8 +43,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t blockid = getBlockIDInGrid();
     uint32_t threadid = getThreadIdInBlock();
     __syncthreads();
-    if (threadid == 0)
-        printf("Blcok %d is running in sm %d.\n", blockid, smid);
+    printf("Blcok %d is running in sm %d.\n", blockid, smid);
 
     // L1 hit
     i = threadid;
@@ -115,7 +114,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             step++;
             DATATYPE End_time = get_time(clockRate);
             s2_tvalue[index] = End_time - Start_time;
-            printf("Second testing L1, %d duration is %.4f\n", index, End_time - Start_time);
+            if (step % 32 == 0)
+                printf("Second testing L1, %d duration is %.4f\n", index, End_time - Start_time);
         }
         __syncthreads();
         //保存两次的访问时间
