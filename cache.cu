@@ -14,7 +14,7 @@ using namespace std;
 #define L1_SIZE 64 * 1024
 #define SHARED_SIZE 64 * 1024
 #define L2_SIZE 2359296
-#define strige 16 / sizeof(DATATYPE)
+#define strige 32 / sizeof(DATATYPE)
 #define WAIT_FOR_THE_FINAL_BLOCK                                      \
     do                                                                \
     {                                                                 \
