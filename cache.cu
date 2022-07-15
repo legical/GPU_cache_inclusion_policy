@@ -48,7 +48,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         i = GPU_array_L1[i];
         step++;
         if (step % 32 == 0)
-            printf("Thread : %d \t step : %d\n", threadid, step);
+            printf("Thread : %d \t step : %d \t i : %d \n", threadid, step, i);
     }
     __syncthreads();
     if (threadid == 0)
