@@ -193,6 +193,9 @@ int main()
     printf("*********   This GPU has %d SMs   *********\n", sm_number);
     // output GPU prop
 
+    uint32_t L1_limit = L1_SIZE / sizeof(DATATYPE);
+    printf("L1size: %d \t sizeoftype:%d \t L1limt:%d \t L2size:%d \n",L1_SIZE,sizeof(DATATYPE),L1_SIZE / sizeof(DATATYPE),L2_SIZE);
+    getchar();
     DATATYPE *array_L1;
     DATATYPE *array_L2;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
