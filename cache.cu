@@ -264,19 +264,12 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // __threadfence();
 }
 
-void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
+void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2,DATATYPE **dura,int dura_num)
 {
     int blocks = 2;
     int threads = 1;
-    int dura_num = 5;
-    DATATYPE **dura;
-    dura = (DATATYPE **)malloc(sizeof(DATATYPE *) * dura_num);
-    for (int i = 0; i < dura_num; i++)
-    {
-        //初始化为0
-        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * (L1_limit / strige + 1));
-        init_order(dura[i], L1_limit, 0);
-    }
+    // int dura_num = 5;
+    
     DATATYPE *GPU_array_L1;
     DATATYPE *GPU_array_L2;
     cudaMalloc((void **)&GPU_array_L1, L1_SIZE);
@@ -313,17 +306,14 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
 
     cudaFree(GPU_array_L1);
     cudaFree(GPU_array_L2);
-    for (int i = 0; i < dura_num; i++)
-    {
-        free(dura[i]);
-    }
-    free(dura);
+    
 }
 
 int main()
 {
     int device = 0;
     int flag = 1;
+    int dura_num = 5;
     cudaDeviceProp prop;
     cudaSetDevice(device);
     // printf("device:%d\n",device);
@@ -341,10 +331,24 @@ int main()
     array_L2 = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE);
     init_order(array_L1, L1_limit, flag);
     init_order(array_L2, L2_SIZE, flag);
-    main_test(clockRate, array_L1, array_L2);
+
+    DATATYPE **dura;
+    dura = (DATATYPE **)malloc(sizeof(DATATYPE *) * dura_num);
+    for (int i = 0; i < dura_num; i++)
+    {
+        //初始化为0
+        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * (L1_limit / strige + 1));
+        init_order(dura[i], L1_limit, 0);
+    }
+
+    main_test(clockRate, array_L1, array_L2,dura,dura_num);
 
     free(array_L1);
     free(array_L2);
-
+    for (int i = 0; i < dura_num; i++)
+    {
+        free(dura[i]);
+    }
+    free(dura);
     return 0;
 }
