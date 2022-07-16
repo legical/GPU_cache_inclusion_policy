@@ -238,20 +238,19 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         printf("2-2 loading over , step is : %d\n", step);
         __syncthreads();
         //保存4次的访问时间
-        if (threadid == 0)
+
+        for (i = 0; i < step; i++)
         {
-            for (i = 0; i < step; i++)
-            {
-                dura[0][i] = s_tvalue[i];
-                dura[1][i] = s1_tvalue[i];
-                dura[2][i] = s2_1_tvalue[i];
-                dura[3][i] = s2_tvalue[i];
-                if (i % 32 == 0)
-                    printf("duration i : %d, step is : %d \n", i, step);
-            }
-            //
-            dura[4][0] = step;
+            dura[0][i] = s_tvalue[i];
+            dura[1][i] = s1_tvalue[i];
+            dura[2][i] = s2_1_tvalue[i];
+            dura[3][i] = s2_tvalue[i];
+            if (i % 32 == 0)
+                printf("duration i : %d, step is : %d \n", i, step);
         }
+        //
+        dura[4][0] = step;
+
         printf("Duration 2 over. dura[4][0] : %.0f\n", dura[4][0]);
     }
     // __syncthreads();
