@@ -21,27 +21,27 @@ using namespace std;
 #define L1_limit 16384
 // lock-based
 __device__ volatile int g_mutex = 0;
- 
+
 // GPU lock-based synchronization function
 __device__ void __gpu_sync(int goalVal)
 {
-	// thread ID in a block
-	int tid_in_block = getThreadIdInBlock();
-	// only thread 0 is used for synchronization
-	if (tid_in_block == 0)
-	{
-		atomicAdd((int*) &g_mutex, 1);
- 
-		// only when all blocks add 1 go g_mutex
-		// will g_mutex equal to goalVal
-		while (g_mutex != goalVal)
-		{
-			// Do nothing here
-		}
-	}
-	__syncthreads();
+    // thread ID in a block
+    int tid_in_block = getThreadIdInBlock();
+    // only thread 0 is used for synchronization
+    if (tid_in_block == 0)
+    {
+        atomicAdd((int *)&g_mutex, 1);
+        printf("Block %d 's mutex is %d , wish %d .\n", getBlockIDInGrid(), g_mutex, goalVal);
+        // only when all blocks add 1 go g_mutex
+        // will g_mutex equal to goalVal
+        while (g_mutex != goalVal)
+        {
+            // Do nothing here. Until for synchronization
+        }
+    }
+    __syncthreads();
 }
- 
+
 //初始化数组，a[i]=0
 template <class T>
 void init_order(T *a, int n, int flag)
@@ -74,7 +74,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         i = GPU_array_L1[i];
         step++;
         // if (threadid == 0 && blockid == 0)
-            // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
+        // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
 
     __gpu_sync(2);
@@ -100,7 +100,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     }
     // __syncthreads();
     // if (threadid == 0)
-        printf("Block 0 Loading data into L1 cache...\n");
+    printf("Block 0 Loading data into L1 cache...\n");
     //等待L1 hit完毕
     // fence[0] += blockid * threadid;
     // __threadfence();
