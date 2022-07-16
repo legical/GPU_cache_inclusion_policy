@@ -274,7 +274,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     for (int i = 0; i < dura_num; i++)
     {
         //初始化为0
-        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE * 2049);
+        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * 2049);
         init_order(dura[i], L1_limit, 0);
     }
     DATATYPE *GPU_array_L1;
