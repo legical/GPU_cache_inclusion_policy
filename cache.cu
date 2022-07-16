@@ -50,7 +50,7 @@ __device__ void __gpu_sync(int times)
         {
         case 1:
             atomicAdd((int *)&g_mutex1, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex1, times);
+            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex1, times);
             // only when all blocks add 1 go g_mutex
             // will g_mutex equal to goalVal
             while (g_mutex1 != goalVal)
@@ -61,7 +61,7 @@ __device__ void __gpu_sync(int times)
             break;
         case 2:
             atomicAdd((int *)&g_mutex2, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex2, times);
+            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex2, times);
             // only when all blocks add 1 go g_mutex
             // will g_mutex equal to goalVal
             while (g_mutex2 != goalVal)
@@ -72,7 +72,7 @@ __device__ void __gpu_sync(int times)
             break;
         case 3:
             atomicAdd((int *)&g_mutex3, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex3, times);
+            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex3, times);
             // only when all blocks add 1 go g_mutex
             // will g_mutex equal to goalVal
             while (g_mutex3 != goalVal)
@@ -83,7 +83,7 @@ __device__ void __gpu_sync(int times)
             break;
         case 4:
             atomicAdd((int *)&g_mutex4, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex4, times);
+            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex4, times);
             // only when all blocks add 1 go g_mutex
             // will g_mutex equal to goalVal
             while (g_mutex4 != goalVal)
@@ -144,8 +144,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     if (blockid == 0)
     {
         step = 0;
+        i = threadid;
         DATATYPE Start_time = get_time(clockRate);
-        for (i = threadid; i < L1_limit * factor;)
+        while (i < L1_limit)
         {
             uint32_t index = i;
 
@@ -156,6 +157,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             if (step % 32 == 0)
                 printf("First testing L1, %d duration is %.4f\n", index, End_time - Start_time);
         }
+
         printf("Block 0 first Loading data into L1 cache over.\n");
     }
     // __syncthreads();
