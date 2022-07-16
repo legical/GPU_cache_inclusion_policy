@@ -331,7 +331,7 @@ int main()
     printf("*********   This GPU has %d SMs   *********\n", sm_number);
     // output GPU prop
 
-    printf("L1size: %ld \t sizeoftype:%d \t L1limt:%d \t L2size:%d \n", L1_SIZE, sizeof(DATATYPE), L1_limit, L2_SIZE);
+    printf("L1size: %ld \t sizeoftype:%d \t L1limt:%ld \t L2size:%d \n", L1_SIZE, sizeof(DATATYPE), L1_limit, L2_SIZE);
     // getchar();
     DATATYPE *array_L1;
     DATATYPE *array_L2;
