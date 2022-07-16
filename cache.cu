@@ -113,6 +113,7 @@ void init_order(T *a, int n, int flag)
 
 __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array_L2, DATATYPE **dura)
 {
+    printf("in cache\n");
     // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     uint32_t i = 0;
     uint32_t step = 0;
@@ -284,7 +285,7 @@ int main()
     // output GPU prop
 
     printf("L1size: %ld \t sizeoftype:%d \t L1limt:%d \t L2size:%d \n", L1_SIZE, sizeof(DATATYPE), L1_limit, L2_SIZE);
-    getchar();
+    // getchar();
     DATATYPE *array_L1;
     DATATYPE *array_L2;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
