@@ -203,7 +203,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         // 2-2 L1 test
         hit_L1();
         printf("2-2 loading over , step is : %d\n", step);
-
+        __syncthreads();
         //保存4次的访问时间
         s_tvalue[0] = step;
         s_tvalue[1] = time;
