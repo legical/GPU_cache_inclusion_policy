@@ -139,8 +139,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     printf("step is : %d\n", step);
 
     __gpu_sync(1);
-    if (threadid == 0)
-        printf("block %d test loading L1 cache over.\n", blockid);
+    printf("block %d test loading L1 cache over.\n", blockid);
 
     // hit L1 cache function
     auto hit_L1 = [&](int count)
@@ -159,7 +158,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                 // if ((index + (step * time)) % 32 == 0)
                 //     printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
             }
-            
+
             printf("\n%d——%d testing L1 over, %d duration is %.4f\n", (time + count) / count, time % count + 1, index + (step * time), s_tvalue[index + (step * time)]);
             ++time;
             __syncthreads();
@@ -174,12 +173,12 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     }
     // __syncthreads();
     // if (threadid == 0)
-    else
-        printf("\nBlock 1 is wating 0's first loading data into L1 cache...\n");
+
     //等待L1 hit完毕
     // fence[0] += blockid * threadid;
     // __threadfence();
     __gpu_sync(2);
+    printf("Block 0 first hit over. Block1 start hit L2.\n");
 
     // Load L2 cache
     if (blockid != 0)
@@ -190,11 +189,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         printf("\nBlock %d loading data into L2 cache over.\n", blockid);
     }
-    else
-        printf("\nBlock 0 is waiting for 1's Loading data into L2 cache...\n");
 
     __gpu_sync(3);
-
+    printf("Block1 hit L2 over. Block 0 start hit L1 again. \n");
     // Load L1 cache again
     if (blockid == 0)
     {
@@ -208,7 +205,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         //
 
-        printf("\nTest cache over. step : %.0f, Total times: %.0f\n", dura[0], dura[1]);
+        printf("\nBlock %d test cache over. step : %.0f, Total times: %.0f\n", blockid, dura[0], dura[1]);
     }
     // __syncthreads();
     __gpu_sync(4);
