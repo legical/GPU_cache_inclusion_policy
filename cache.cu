@@ -242,7 +242,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     cudaFuncSetAttribute(cache, cudaFuncAttributeMaxDynamicSharedMemorySize, SHARED_SIZE);
     printf("init shared memory size over.\n");
     // kernel here
-    cache<<<blocks, threads, 32 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
+    cache<<<blocks, threads, 16 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
 
     cudaDeviceSynchronize();
 
