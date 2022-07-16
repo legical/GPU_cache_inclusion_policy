@@ -160,10 +160,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                 //     printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
             }
             time++;
-            printf("%d——%d testing L1 over, %d duration is %.4f\n", (time + count) / count, (time - 1) % count + 1, index + (step * time), s_tvalue[index + (step * time)]);
+            printf("\n%d——%d testing L1 over, %d duration is %.4f\n", (time + count) / count, (time - 1) % count + 1, index + (step * time), s_tvalue[index + (step * time)]);
             __syncthreads();
         }
     };
+    time = 0;
     // Load L1 cache
     if (blockid == 0)
     {
@@ -200,7 +201,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         //保存访问时间
         s_tvalue[0] = step;
         s_tvalue[1] = time;
-        for (i = 0; i <= step * time + 2; i++)
+        for (i = 0; i < step * time + 2; i++)
         {
             dura[i] = s_tvalue[i];
         }
