@@ -152,8 +152,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         DATATYPE Start_time = get_time(clockRate);
         while (i < L1_limit)
         {
-            uint32_t index = i;
-
             i = GPU_array_L1[i];
             step++;
             DATATYPE End_time = get_time(clockRate);
@@ -170,7 +168,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         Start_time = get_time(clockRate);
         while (i < L1_limit)
         {
-            uint32_t index = i;
 
             i = GPU_array_L1[i];
             step++;
@@ -214,7 +211,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         DATATYPE Start_time = get_time(clockRate);
         while (i < L1_limit)
         {
-            uint32_t index = i;
 
             i = GPU_array_L1[i];
             step++;
@@ -231,7 +227,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         Start_time = get_time(clockRate);
         while (i < L1_limit)
         {
-            uint32_t index = i;
 
             i = GPU_array_L1[i];
             step++;
@@ -254,7 +249,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         // if (threadid == 0)
         dura[4][0] = step;
-        printf("Duration 2 over. dura[2][0] : %d\n", dura[2][0]);
+        printf("Duration 2 over. dura[2][0] : %.0f\n", dura[2][0]);
     }
     // __syncthreads();
     __gpu_sync(4);
