@@ -27,21 +27,71 @@ __device__ volatile int g_mutex3 = 0;
 __device__ volatile int g_mutex4 = 0;
 
 // GPU lock-based synchronization function
-__device__ void __gpu_sync(int *g_mutex, int times)
+__device__ void __gpu_sync(int times)
 {
     // thread ID in a block
     int goalVal = 2;
     int tid_in_block = getThreadIdInBlock();
+
+    // auto wait = [goalVal, times](int g_mutex)
+    // {
+    //     printf("Block %d 's mutex is %d , Times: %d .\n", getBlockIDInGrid(), g_mutex, times);
+    //     // only when all blocks add 1 go g_mutex
+    //     // will g_mutex equal to goalVal
+    //     while (g_mutex != goalVal)
+    //     {
+    //         // Do nothing here. Until for synchronization
+    //     }
+    // };
     // only thread 0 is used for synchronization
     if (tid_in_block == 0)
     {
-        atomicAdd((int *)g_mutex, 1);
-        printf("Block %d 's mutex is %d , Times: %d .\n", getBlockIDInGrid(), g_mutex, times);
-        // only when all blocks add 1 go g_mutex
-        // will g_mutex equal to goalVal
-        while (g_mutex != goalVal)
+        switch (times)
         {
-            // Do nothing here. Until for synchronization
+        case 1:
+            atomicAdd((int *)&g_mutex1, 1);
+            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex1, times);
+            // only when all blocks add 1 go g_mutex
+            // will g_mutex equal to goalVal
+            while (g_mutex1 != goalVal)
+            {
+                // Do nothing here. Until for synchronization
+            }
+            break;
+        case 2:
+            atomicAdd((int *)&g_mutex2, 1);
+            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex2, times);
+            // only when all blocks add 1 go g_mutex
+            // will g_mutex equal to goalVal
+            while (g_mutex2 != goalVal)
+            {
+                // Do nothing here. Until for synchronization
+            }
+            break;
+        case 3:
+            atomicAdd((int *)&g_mutex3, 1);
+            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex3, times);
+            // only when all blocks add 1 go g_mutex
+            // will g_mutex equal to goalVal
+            while (g_mutex3 != goalVal)
+            {
+                // Do nothing here. Until for synchronization
+            }
+            break;
+        case 4:
+            atomicAdd((int *)&g_mutex4, 1);
+            printf("Block %d 's mutex is %d , kernel syn times: %d .\n", getBlockIDInGrid(), g_mutex4, times);
+            // only when all blocks add 1 go g_mutex
+            // will g_mutex equal to goalVal
+            while (g_mutex4 != goalVal)
+            {
+                // Do nothing here. Until for synchronization
+            }
+            break;
+
+        default:
+            printf("Error sys times: %d .  Exit.\n", times);
+            break;
         }
     }
     __syncthreads();
@@ -82,7 +132,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
     }
 
-    __gpu_sync(&g_mutex1, 1);
+    __gpu_sync(1);
     if (threadid == 0)
         printf("block %d test loading L1 cache over.\n", blockid);
 
@@ -111,7 +161,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     //等待L1 hit完毕
     // fence[0] += blockid * threadid;
     // __threadfence();
-    __gpu_sync(&g_mutex2, 2);
+    __gpu_sync(2);
 
     // Load L2 cache
     if (blockid != 0)
@@ -126,7 +176,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     else
         printf("Block 0 is waiting for 1's Loading data into L2 cache...\n");
 
-    __gpu_sync(&g_mutex3, 3);
+    __gpu_sync(3);
 
     // Load L1 cache again
     if (blockid == 0)
@@ -157,7 +207,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             dura[2][0] = step;
     }
     // __syncthreads();
-    __gpu_sync(&g_mutex4, 4);
+    __gpu_sync(4);
 
     //等待L1 load again完毕
     // fence[1] += blockid * threadid;
