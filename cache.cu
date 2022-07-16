@@ -249,6 +249,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             dura[1][i] = s1_tvalue[i];
             dura[2][i] = s2_1_tvalue[i];
             dura[3][i] = s2_tvalue[i];
+            if (i % 32 == 0)
+                printf("duration i : %d, step is : %d \n", i, step);
         }
         // if (threadid == 0)
         dura[4][0] = step;
@@ -272,7 +274,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     for (int i = 0; i < dura_num; i++)
     {
         //初始化为0
-        dura[i] = (DATATYPE *)malloc(L1_SIZE);
+        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE * 2049);
         init_order(dura[i], L1_limit, 0);
     }
     DATATYPE *GPU_array_L1;
