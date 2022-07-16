@@ -136,7 +136,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             // if (threadid == 0 && blockid == 0)
             // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
         }
-    printf("step is : %d\n", step);
+    // printf("step is : %d\n", step);
 
     __gpu_sync(1);
     printf("block %d test loading L1 cache over.\n", blockid);
@@ -178,7 +178,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // fence[0] += blockid * threadid;
     // __threadfence();
     __gpu_sync(2);
-    printf("Block 0 first hit over. Block1 start hit L2.\n");
+    printf("I'm Block %d. Note: Block 0 first hit over. Block1 start hit L2.\n",blockid);
 
     // Load L2 cache
     if (blockid != 0)
@@ -191,7 +191,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     }
 
     __gpu_sync(3);
-    printf("Block1 hit L2 over. Block 0 start hit L1 again. \n");
+    printf("I'm Block %d. Note: Block1 hit L2 over. Block 0 start hit L1 again. \n",blockid);
     // Load L1 cache again
     if (blockid == 0)
     {
