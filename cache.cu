@@ -19,6 +19,7 @@ using namespace std;
 #define strige 8
 // L1_SIZE / sizeof(DATATYPE) = 16384
 #define L1_limit 16384
+#define factor 0.8
 // lock-based
 __device__ volatile int g_mutex = 0;
 
@@ -86,7 +87,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         step = 0;
         DATATYPE Start_time = get_time(clockRate);
-        for (i = threadid; i < L1_limit;)
+        for (i = threadid; i < L1_limit * factor;)
         {
             uint32_t index = i;
 
@@ -129,7 +130,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         step = 0;
 
         DATATYPE Start_time = get_time(clockRate);
-        for (i = threadid; i < L1_limit;)
+        for (i = threadid; i < L1_limit * factor;)
         {
             uint32_t index = i;
 
@@ -142,7 +143,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         // __syncthreads();
         //保存两次的访问时间
-        for (i = threadid; i < L1_limit;)
+        for (i = threadid; i < L1_limit * factor;)
         {
             dura[0][i] = s_tvalue[i];
             dura[1][i] = s2_tvalue[i];
@@ -193,7 +194,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
         exit(EXIT_FAILURE);
     }
     fprintf(fp, "step,1_L1_duration,2_L1_duration\n");
-    for (int i = 0; i < dura[2][0] * threads; i++)
+    for (int i = 0; i < dura[2][0] * threads * factor; i++)
     {
         fprintf(fp, "%d,%.4f,%.4f\n", i, dura[0][i], dura[1][i]);
     }
