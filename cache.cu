@@ -55,7 +55,7 @@ __device__ void __gpu_sync(int times)
             // will g_mutex equal to goalVal
             while (g_mutex1 != goalVal)
             {
-                printf(" ");
+                printf("");
                 // Do nothing here. Until for synchronization
             }
             break;
@@ -66,7 +66,7 @@ __device__ void __gpu_sync(int times)
             // will g_mutex equal to goalVal
             while (g_mutex2 != goalVal)
             {
-                printf(" ");
+                printf("");
                 // Do nothing here. Until for synchronization
             }
             break;
@@ -77,7 +77,7 @@ __device__ void __gpu_sync(int times)
             // will g_mutex equal to goalVal
             while (g_mutex3 != goalVal)
             {
-                printf(" ");
+                printf("");
                 // Do nothing here. Until for synchronization
             }
             break;
@@ -88,7 +88,7 @@ __device__ void __gpu_sync(int times)
             // will g_mutex equal to goalVal
             while (g_mutex4 != goalVal)
             {
-                printf(" ");
+                printf("");
                 // Do nothing here. Until for synchronization
             }
             break;
