@@ -116,7 +116,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     uint32_t i = 0;
     uint32_t step = 0;
-    __shared__ DATATYPE s_tvalue[L1_limit];
+    __shared__ DATATYPE s_tvalue[10240];
     extern __shared__ DATATYPE s2_tvalue[];
     // __shared__ DATATYPE fence[2];
 
