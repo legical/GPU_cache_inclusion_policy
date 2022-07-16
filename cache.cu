@@ -116,7 +116,10 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     uint32_t i = 0;
     uint32_t step = 0;
+    // 16385 / 8 + 1 = 2048+ 1
     __shared__ DATATYPE s_tvalue[L1_limit / strige + 1];
+    __shared__ DATATYPE s1_tvalue[L1_limit / strige + 1];
+    __shared__ DATATYPE s2_1_tvalue[L1_limit / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
     // __shared__ DATATYPE fence[2];
 
@@ -143,6 +146,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // Load L1 cache
     if (blockid == 0)
     {
+        // 1-1 test L1
         step = 0;
         i = threadid;
         DATATYPE Start_time = get_time(clockRate);
@@ -155,10 +159,28 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             DATATYPE End_time = get_time(clockRate);
             s_tvalue[step - 1] = End_time - Start_time;
             if (step % 32 == 0)
-                printf("First testing L1, %d duration is %.4f\n", step - 1, End_time - Start_time);
+                printf("1——1 testing L1, %d duration is %.4f\n", step - 1, s_tvalue[step - 1]);
         }
 
-        printf("First loading over , step is : %d\n",step);
+        printf("1——1 loading over , step is : %d\n", step);
+
+        // 1-2 test L1
+        step = 0;
+        i = threadid;
+        Start_time = get_time(clockRate);
+        while (i < L1_limit)
+        {
+            uint32_t index = i;
+
+            i = GPU_array_L1[i];
+            step++;
+            DATATYPE End_time = get_time(clockRate);
+            s1_tvalue[step - 1] = End_time - Start_time;
+            if (step % 32 == 0)
+                printf("1——2 testing L1, %d duration is %.4f\n", step - 1, s1_tvalue[step - 1]);
+        }
+
+        printf("1——2 loading over , step is : %d\n", step);
     }
     // __syncthreads();
     // if (threadid == 0)
@@ -197,22 +219,40 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             i = GPU_array_L1[i];
             step++;
             DATATYPE End_time = get_time(clockRate);
+            s2_1_tvalue[step - 1] = End_time - Start_time;
+            if (step % 32 == 0)
+                printf("2-1 testing L1, %d duration is %.4f\n", step - 1, s2_1_tvalue[step - 1]);
+        }
+        printf("2-1 loading over , step is : %d\n", step);
+
+        // 2-2 L1 test
+        step = 0;
+        i = threadid;
+        Start_time = get_time(clockRate);
+        while (i < L1_limit)
+        {
+            uint32_t index = i;
+
+            i = GPU_array_L1[i];
+            step++;
+            DATATYPE End_time = get_time(clockRate);
             s2_tvalue[step - 1] = End_time - Start_time;
             if (step % 32 == 0)
-                printf("Second testing L1, %d duration is %.4f\n", step - 1, End_time - Start_time);
+                printf("2-2 testing L1, %d duration is %.4f\n", step - 1, s2_tvalue[step - 1]);
         }
-        printf("Second loading over , step is : %d\n",step);
+        printf("2-2 loading over , step is : %d\n", step);
         // __syncthreads();
-        //保存两次的访问时间
+        //保存4次的访问时间
         for (i = 0; i < step; i++)
         {
             dura[0][i] = s_tvalue[i];
-            dura[1][i] = s2_tvalue[i];
+            dura[1][i] = s1_tvalue[i];
+            dura[2][i] = s2_1_tvalue[i];
+            dura[3][i] = s2_tvalue[i];
         }
-        printf("Duration 1 over.\n");
         // if (threadid == 0)
-        dura[2][0] = step;
-        printf("Duration 2 over. dura[2][0] : %d\n",dura[2][0]);
+        dura[4][0] = step;
+        printf("Duration 2 over. dura[2][0] : %d\n", dura[2][0]);
     }
     // __syncthreads();
     __gpu_sync(4);
@@ -226,7 +266,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
 {
     int blocks = 2;
     int threads = 1;
-    int dura_num = 3;
+    int dura_num = 5;
     DATATYPE **dura;
     dura = (DATATYPE **)malloc(sizeof(DATATYPE *) * dura_num);
     for (int i = 0; i < dura_num; i++)
@@ -244,7 +284,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     cudaFuncSetAttribute(cache, cudaFuncAttributeMaxDynamicSharedMemorySize, SHARED_SIZE);
     printf("init shared memory size over.\n");
     // kernel here
-    cache<<<blocks, threads, 32 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
+    cache<<<blocks, threads, 16 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
 
     cudaDeviceSynchronize();
 
@@ -256,9 +296,15 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
         exit(EXIT_FAILURE);
     }
     fprintf(fp, "step,1_L1_duration,2_L1_duration\n");
-    for (int i = 0; i < dura[2][0] * threads; i++)
+    for (int i = 0; i < dura[dura_num - 1][0] * threads; i++)
     {
-        fprintf(fp, "%d,%.4f,%.4f\n", i, dura[0][i], dura[1][i]);
+        fprintf(fp, "%d", i);
+        for (int j = 0; j < dura_num - 1; j++)
+        {
+            fprintf(fp, "%.4f", dura[j][i]);
+        }
+
+        fprintf(fp, "\n");
     }
 
     fclose(fp);
