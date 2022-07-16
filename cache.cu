@@ -337,7 +337,7 @@ int main()
     for (int i = 0; i < dura_num; i++)
     {
         //初始化为0
-        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * (L1_limit / strige + 1));
+        dura[i] = (DATATYPE *)malloc(sizeof(DATATYPE) * (L1_SIZE / strige));
         init_order(dura[i], L1_limit, 0);
     }
 
