@@ -253,8 +253,8 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
         exit(EXIT_FAILURE);
     }
     fprintf(fp, "step,1_1_L1,1_2_L1,2_1_L1,2_2_L1\n");
-    int step = s_tvalue[0];
-    int time = s_tvalue[1];
+    int step = dura[0];
+    int time = dura[1];
     for (int i = 0; i < step; i++)
     {
         fprintf(fp, "%d", i + 1);
