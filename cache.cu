@@ -113,14 +113,11 @@ void init_order(T *a, int n, int flag)
 
 __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array_L2, DATATYPE **dura)
 {
-    printf("in cache\n");
     // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     uint32_t i = 0;
     uint32_t step = 0;
-    __shared__ DATATYPE s_tvalue[10240];
-    printf("shared 1\n");
+    __shared__ DATATYPE s_tvalue[L1_limit / strige + 1];
     extern __shared__ DATATYPE s2_tvalue[];
-    printf("shared 2\n");
     // __shared__ DATATYPE fence[2];
 
     uint32_t smid = getSMID();
@@ -243,19 +240,10 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     cudaMemcpy(GPU_array_L1, array_L1, L1_SIZE, cudaMemcpyHostToDevice);
     cudaMemcpy(GPU_array_L2, array_L2, sizeof(DATATYPE) * L2_SIZE, cudaMemcpyHostToDevice);
     cudaFuncSetAttribute(cache, cudaFuncAttributeMaxDynamicSharedMemorySize, SHARED_SIZE);
-    cudaError_t error_id = cudaGetLastError();
-	if (error_id != cudaSuccess)
-	{
-		printf("Error kernel is %s\n", cudaGetErrorString(error_id));
-	}
     printf("init shared memory size over.\n");
     // kernel here
-    cache<<<blocks, threads, 16 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
-    error_id = cudaGetLastError();
-	if (error_id != cudaSuccess)
-	{
-		printf("Error kernel is %s\n", cudaGetErrorString(error_id));
-	}
+    cache<<<blocks, threads, 32 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
+
     cudaDeviceSynchronize();
 
     //读写文件。文件存在则被截断为零长度，不存在则创建一个新文件
@@ -296,7 +284,7 @@ int main()
     // output GPU prop
 
     printf("L1size: %ld \t sizeoftype:%d \t L1limt:%d \t L2size:%d \n", L1_SIZE, sizeof(DATATYPE), L1_limit, L2_SIZE);
-    // getchar();
+    getchar();
     DATATYPE *array_L1;
     DATATYPE *array_L2;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
