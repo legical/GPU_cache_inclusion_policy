@@ -246,7 +246,11 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
     printf("init shared memory size over.\n");
     // kernel here
     cache<<<blocks, threads, 16 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
-
+    cudaError_t error_id = cudaGetLastError();
+	if (error_id != cudaSuccess)
+	{
+		printf("Error kernel is %s\n", cudaGetErrorString(error_id));
+	}
     cudaDeviceSynchronize();
 
     //读写文件。文件存在则被截断为零长度，不存在则创建一个新文件
