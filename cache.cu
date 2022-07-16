@@ -111,17 +111,14 @@ void init_order(T *a, int n, int flag)
     }
 }
 
-__global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array_L2, DATATYPE **dura)
+__global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array_L2, DATATYPE *dura)
 {
     // int array_num = L1_SIZE / sizeof(DATATYPE) / strige + 1;
     uint32_t i = 0;
     uint32_t step = 0;
+    uint32_t time = 0;
     // 16385 / 8 + 1 = 2048+ 1
-    __shared__ DATATYPE s_tvalue[L1_limit / strige + 1];
-    __shared__ DATATYPE s1_tvalue[L1_limit / strige + 1];
-    __shared__ DATATYPE s2_1_tvalue[L1_limit / strige + 1];
-    extern __shared__ DATATYPE s2_tvalue[];
-    // __shared__ DATATYPE fence[2];
+    extern __shared__ DATATYPE s_tvalue[];
 
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
@@ -143,40 +140,33 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     if (threadid == 0)
         printf("block %d test loading L1 cache over.\n", blockid);
 
-    // Load L1 cache
-    if (blockid == 0)
+    // hit L1 cache function
+    auto hit_L1 = [&]
     {
-        // 1-1 test L1
-        step = 0;
-        i = threadid;
+        uint32_t index = 1;
+        i = 0;
         DATATYPE Start_time = get_time(clockRate);
         while (i < L1_limit)
         {
             i = GPU_array_L1[i];
-            step++;
+            index++;
             DATATYPE End_time = get_time(clockRate);
-            s_tvalue[step - 1] = End_time - Start_time;
-            if (step % 32 == 0)
-                printf("1——1 testing L1, %d duration is %.4f\n", step - 1, s_tvalue[step - 1]);
+            s_tvalue[index + (step * time)] = End_time - Start_time;
+            if ((index + (step * time)) % 32 == 0)
+                printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
         }
-
+        time++;
+    };
+    // Load L1 cache
+    if (blockid == 0)
+    {
+        // 1-1 test L1
+        hit_L1();
         printf("1——1 loading over , step is : %d\n", step);
 
+        __syncthreads();
         // 1-2 test L1
-        step = 0;
-        i = threadid;
-        Start_time = get_time(clockRate);
-        while (i < L1_limit)
-        {
-
-            i = GPU_array_L1[i];
-            step++;
-            DATATYPE End_time = get_time(clockRate);
-            s1_tvalue[step - 1] = End_time - Start_time;
-            if (step % 32 == 0)
-                printf("1——2 testing L1, %d duration is %.4f\n", step - 1, s1_tvalue[step - 1]);
-        }
-
+        hit_L1();
         printf("1——2 loading over , step is : %d\n", step);
     }
     // __syncthreads();
@@ -193,7 +183,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         for (i = threadid; i < L2_SIZE;)
         {
-
             i = GPU_array_L2[i];
         }
         printf("Block %d loading data into L2 cache over.\n", blockid);
@@ -206,52 +195,25 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // Load L1 cache again
     if (blockid == 0)
     {
-        step = 0;
-        i = threadid;
-        DATATYPE Start_time = get_time(clockRate);
-        while (i < L1_limit)
-        {
-
-            i = GPU_array_L1[i];
-            step++;
-            DATATYPE End_time = get_time(clockRate);
-            s2_1_tvalue[step - 1] = End_time - Start_time;
-            if (step % 32 == 0)
-                printf("2-1 testing L1, %d duration is %.4f\n", step - 1, s2_1_tvalue[step - 1]);
-        }
+        hit_L1();
         printf("2-1 loading over , step is : %d\n", step);
 
-        // 2-2 L1 test
-        step = 0;
-        i = threadid;
-        Start_time = get_time(clockRate);
-        while (i < L1_limit)
-        {
-
-            i = GPU_array_L1[i];
-            step++;
-            DATATYPE End_time = get_time(clockRate);
-            s2_tvalue[step - 1] = End_time - Start_time;
-            if (step % 32 == 0)
-                printf("2-2 testing L1, %d duration is %.4f\n", step - 1, s2_tvalue[step - 1]);
-        }
-        printf("2-2 loading over , step is : %d\n", step);
         __syncthreads();
-        //保存4次的访问时间
 
-        for (i = 0; i < step; i++)
+        // 2-2 L1 test
+        hit_L1();
+        printf("2-2 loading over , step is : %d\n", step);
+
+        //保存4次的访问时间
+        s_tvalue[0] = step;
+        s_tvalue[1] = time;
+        for (i = 0; i <= step * time; i++)
         {
-            *(dura[0] + i) = s_tvalue[i];
-            *(dura[1] + i) = s1_tvalue[i];
-            *(dura[2] + i) = s2_1_tvalue[i];
-            *(dura[3] + i) = s2_tvalue[i];
-            if (i % 32 == 0)
-                printf("duration i : %d, step is : %d \n", i, step);
+            dura[i] = s_tvalue[i];
         }
         //
-        dura[4][0] = step;
 
-        printf("Duration 2 over. dura[4][0] : %.0f\n", dura[4][0]);
+        printf("Duration 2 over. dura[0] : %.0f\n", dura[0]);
     }
     // __syncthreads();
     __gpu_sync(4);
@@ -261,7 +223,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // __threadfence();
 }
 
-void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE **dura, int dura_num)
+void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *dura)
 {
     int blocks = 2;
     int threads = 1;
@@ -269,17 +231,20 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
 
     DATATYPE *GPU_array_L1;
     DATATYPE *GPU_array_L2;
+    DATATYPE *GPU_dura;
     cudaMalloc((void **)&GPU_array_L1, L1_SIZE);
     cudaMalloc((void **)&GPU_array_L2, sizeof(DATATYPE) * L2_SIZE);
+    cudaMalloc((void **)&GPU_dura, SHARED_SIZE);
     cudaMemcpy(GPU_array_L1, array_L1, L1_SIZE, cudaMemcpyHostToDevice);
     cudaMemcpy(GPU_array_L2, array_L2, sizeof(DATATYPE) * L2_SIZE, cudaMemcpyHostToDevice);
+    cudaMemcpy(GPU_dura, dura, SHARED_SIZE, cudaMemcpyHostToDevice);
     cudaFuncSetAttribute(cache, cudaFuncAttributeMaxDynamicSharedMemorySize, SHARED_SIZE);
     printf("init shared memory size over.\n");
     // kernel here
-    cache<<<blocks, threads, 16 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, dura);
+    cache<<<blocks, threads, 48 * 1024>>>(clockRate, GPU_array_L1, GPU_array_L2, GPU_dura);
 
     cudaDeviceSynchronize();
-
+    cudaMemcpy(dura, GPU_dura, SHARED_SIZE, cudaMemcpyDeviceToHost);
     //读写文件。文件存在则被截断为零长度，不存在则创建一个新文件
     FILE *fp = fopen("./out/cache.csv", "w+");
     if (fp == NULL)
@@ -288,14 +253,16 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
         exit(EXIT_FAILURE);
     }
     fprintf(fp, "step,1_1_L1,1_2_L1,2_1_L1,2_2_L1\n");
-    for (int i = 0; i < dura[dura_num - 1][0] * threads; i++)
+    int step = s_tvalue[0];
+    int time = s_tvalue[1];
+    for (int i = 0; i < step; i++)
     {
-        fprintf(fp, "%d", i);
-        for (int j = 0; j < dura_num - 1; j++)
+        fprintf(fp, "%d", i + 1);
+        for (int j = 0; j < time; j++)
         {
-            fprintf(fp, "%.4f", dura[j][i]);
+            int index = i + 2 + step * j;
+            fprintf(fp, "%.4f", dura[index]);
         }
-
         fprintf(fp, "\n");
     }
 
@@ -323,28 +290,18 @@ int main()
     // getchar();
     DATATYPE *array_L1;
     DATATYPE *array_L2;
+    DATATYPE *dura;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
     array_L2 = (DATATYPE *)malloc(sizeof(DATATYPE) * L2_SIZE);
+    dura = (DATATYPE *)malloc(SHARED_SIZE);
     init_order(array_L1, L1_limit, flag);
     init_order(array_L2, L2_SIZE, flag);
+    init_order(dura, SHARED_SIZE / sizeof(DATATYPE), 0);
 
-    DATATYPE **dura;
-    dura = (DATATYPE **)malloc(sizeof(DATATYPE *) * dura_num);
-    for (int i = 0; i < dura_num; i++)
-    {
-        //初始化为0
-        dura[i] = (DATATYPE *)malloc(L1_SIZE);
-        init_order(dura[i], L1_limit, 0);
-    }
-
-    main_test(clockRate, array_L1, array_L2, dura, dura_num);
+    main_test(clockRate, array_L1, array_L2, dura);
 
     free(array_L1);
     free(array_L2);
-    for (int i = 0; i < dura_num; i++)
-    {
-        free(dura[i]);
-    }
     free(dura);
     return 0;
 }
