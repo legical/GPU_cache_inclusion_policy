@@ -19,7 +19,7 @@ using namespace std;
 #define strige 8
 // L1_SIZE / sizeof(DATATYPE) = 16384
 #define L1_limit 16384
-#define factor 0.8
+// #define factor 0.8
 // lock-based
 __device__ volatile int g_mutex1 = 0;
 __device__ volatile int g_mutex2 = 0;
@@ -153,9 +153,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             i = GPU_array_L1[i];
             step++;
             DATATYPE End_time = get_time(clockRate);
-            s_tvalue[index] = End_time - Start_time;
+            s_tvalue[step-1] = End_time - Start_time;
             // if (step % 32 == 0)
-                printf("First testing L1, %d duration is %.4f\n", index, End_time - Start_time);
+                printf("First testing L1, %d duration is %.4f\n", step-1, End_time - Start_time);
         }
 
         printf("Block 0 first Loading data into L1 cache over.\n");
@@ -190,20 +190,20 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         step = 0;
 
         DATATYPE Start_time = get_time(clockRate);
-        for (i = threadid; i < L1_limit * factor;)
+        for (i = threadid; i < L1_limit;)
         {
             uint32_t index = i;
 
             i = GPU_array_L1[i];
             step++;
             DATATYPE End_time = get_time(clockRate);
-            s2_tvalue[index] = End_time - Start_time;
+            s2_tvalue[step-1] = End_time - Start_time;
             if (step % 32 == 0)
-                printf("Second testing L1, %d duration is %.4f\n", index, End_time - Start_time);
+                printf("Second testing L1, %d duration is %.4f\n", step-1, End_time - Start_time);
         }
         // __syncthreads();
         //保存两次的访问时间
-        for (i = threadid; i < L1_limit * factor;)
+        for (i = threadid; i < L1_limit;)
         {
             dura[0][i] = s_tvalue[i];
             dura[1][i] = s2_tvalue[i];
@@ -254,7 +254,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
         exit(EXIT_FAILURE);
     }
     fprintf(fp, "step,1_L1_duration,2_L1_duration\n");
-    for (int i = 0; i < dura[2][0] * threads * factor; i++)
+    for (int i = 0; i < dura[2][0] * threads; i++)
     {
         fprintf(fp, "%d,%.4f,%.4f\n", i, dura[0][i], dura[1][i]);
     }
@@ -284,7 +284,7 @@ int main()
     // output GPU prop
 
     printf("L1size: %ld \t sizeoftype:%d \t L1limt:%d \t L2size:%d \n", L1_SIZE, sizeof(DATATYPE), L1_limit, L2_SIZE);
-    getchar();
+    // getchar();
     DATATYPE *array_L1;
     DATATYPE *array_L2;
     array_L1 = (DATATYPE *)malloc(L1_SIZE);
