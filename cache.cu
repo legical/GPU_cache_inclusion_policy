@@ -118,7 +118,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t i = 0;
     uint32_t step = 0;
     __shared__ DATATYPE s_tvalue[10240];
+    printf("shared 1\n");
     extern __shared__ DATATYPE s2_tvalue[];
+    printf("shared 2\n");
     // __shared__ DATATYPE fence[2];
 
     uint32_t smid = getSMID();
