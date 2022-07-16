@@ -236,19 +236,22 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                 printf("2-2 testing L1, %d duration is %.4f\n", step - 1, s2_tvalue[step - 1]);
         }
         printf("2-2 loading over , step is : %d\n", step);
-        // __syncthreads();
+        __syncthreads();
         //保存4次的访问时间
-        for (i = 0; i < step; i++)
+        if (threadid == 0)
         {
-            dura[0][i] = s_tvalue[i];
-            dura[1][i] = s1_tvalue[i];
-            dura[2][i] = s2_1_tvalue[i];
-            dura[3][i] = s2_tvalue[i];
-            if (i % 32 == 0)
-                printf("duration i : %d, step is : %d \n", i, step);
+            for (i = 0; i < step; i++)
+            {
+                dura[0][i] = s_tvalue[i];
+                dura[1][i] = s1_tvalue[i];
+                dura[2][i] = s2_1_tvalue[i];
+                dura[3][i] = s2_tvalue[i];
+                if (i % 32 == 0)
+                    printf("duration i : %d, step is : %d \n", i, step);
+            }
+            //
+            dura[4][0] = step;
         }
-        // if (threadid == 0)
-        dura[4][0] = step;
         printf("Duration 2 over. dura[4][0] : %.0f\n", dura[4][0]);
     }
     // __syncthreads();
@@ -259,12 +262,12 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // __threadfence();
 }
 
-void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2,DATATYPE **dura,int dura_num)
+void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE **dura, int dura_num)
 {
     int blocks = 2;
     int threads = 1;
     // int dura_num = 5;
-    
+
     DATATYPE *GPU_array_L1;
     DATATYPE *GPU_array_L2;
     cudaMalloc((void **)&GPU_array_L1, L1_SIZE);
@@ -301,7 +304,6 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2,DATATYPE **
 
     cudaFree(GPU_array_L1);
     cudaFree(GPU_array_L2);
-    
 }
 
 int main()
@@ -336,7 +338,7 @@ int main()
         init_order(dura[i], L1_limit, 0);
     }
 
-    main_test(clockRate, array_L1, array_L2,dura,dura_num);
+    main_test(clockRate, array_L1, array_L2, dura, dura_num);
 
     free(array_L1);
     free(array_L2);
