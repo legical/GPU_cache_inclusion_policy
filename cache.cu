@@ -306,5 +306,7 @@ int main()
     free(array_L1);
     free(array_L2);
     free(dura);
+
+    printf("\nAll done.\n")
     return 0;
 }
