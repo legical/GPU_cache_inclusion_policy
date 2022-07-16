@@ -249,7 +249,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         // if (threadid == 0)
         dura[4][0] = step;
-        printf("Duration 2 over. dura[2][0] : %.0f\n", dura[2][0]);
+        printf("Duration 2 over. dura[4][0] : %.0f\n", dura[4][0]);
     }
     // __syncthreads();
     __gpu_sync(4);
