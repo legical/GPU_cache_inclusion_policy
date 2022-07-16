@@ -295,7 +295,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2)
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
     }
-    fprintf(fp, "step,1_L1_duration,2_L1_duration\n");
+    fprintf(fp, "step,1_1_L1,1_2_L1,2_1_L1,2_2_L1,\n");
     for (int i = 0; i < dura[dura_num - 1][0] * threads; i++)
     {
         fprintf(fp, "%d", i);
