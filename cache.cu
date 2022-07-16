@@ -154,7 +154,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             step++;
             DATATYPE End_time = get_time(clockRate);
             s_tvalue[index] = End_time - Start_time;
-            if (step % 32 == 0)
+            // if (step % 32 == 0)
                 printf("First testing L1, %d duration is %.4f\n", index, End_time - Start_time);
         }
 
