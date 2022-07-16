@@ -257,11 +257,11 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
     int time = dura[1];
     for (int i = 0; i < step; i++)
     {
-        fprintf(fp, "%d", i + 1);
+        fprintf(fp, "%d,", i + 1);
         for (int j = 0; j < time; j++)
         {
             int index = i + 2 + step * j;
-            fprintf(fp, "%.4f", dura[index]);
+            fprintf(fp, "%.4f,", dura[index]);
         }
         fprintf(fp, "\n");
     }
