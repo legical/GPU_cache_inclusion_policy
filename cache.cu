@@ -128,46 +128,47 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
     // L1 hit
     i = threadid;
-    while (i < L1_limit)
-    {
-        i = GPU_array_L1[i];
-        step++;
-        // if (threadid == 0 && blockid == 0)
-        // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
-    }
+    for (int j = 0; j < 5; j++)
+        while (i < L1_limit)
+        {
+            i = GPU_array_L1[i];
+            step++;
+            // if (threadid == 0 && blockid == 0)
+            // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
+        }
+    printf("step is : %d\n", step);
 
     __gpu_sync(1);
     if (threadid == 0)
         printf("block %d test loading L1 cache over.\n", blockid);
 
     // hit L1 cache function
-    auto hit_L1 = [&]
+    auto hit_L1 = [&](int count)
     {
-        uint32_t index = 1;
-        i = 0;
-        DATATYPE Start_time = get_time(clockRate);
-        while (i < L1_limit)
+        for (int j = 0; j < count; j++)
         {
-            i = GPU_array_L1[i];
-            index++;
-            DATATYPE End_time = get_time(clockRate);
-            s_tvalue[index + (step * time)] = End_time - Start_time;
-            if ((index + (step * time)) % 32 == 0)
-                printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
+            uint32_t index = 1;
+            i = 0;
+            DATATYPE Start_time = get_time(clockRate);
+            while (i < L1_limit)
+            {
+                i = GPU_array_L1[i];
+                ++index;
+                DATATYPE End_time = get_time(clockRate);
+                s_tvalue[index + (step * time)] = End_time - Start_time;
+                // if ((index + (step * time)) % 32 == 0)
+                //     printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
+            }
+            time++;
+            printf("%d——%d testing L1 over, %d duration is %.4f\n", (time + count) / count, (time - 1) % count + 1, index + (step * time), s_tvalue[index + (step * time)]);
+            __syncthreads();
         }
-        time++;
     };
     // Load L1 cache
     if (blockid == 0)
     {
         // 1-1 test L1
-        hit_L1();
-        printf("1——1 loading over , step is : %d\n", step);
-
-        __syncthreads();
-        // 1-2 test L1
-        hit_L1();
-        printf("1——2 loading over , step is : %d\n", step);
+        hit_L1(3);
     }
     // __syncthreads();
     // if (threadid == 0)
@@ -195,25 +196,17 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     // Load L1 cache again
     if (blockid == 0)
     {
-        hit_L1();
-        printf("2-1 loading over , step is : %d\n", step);
-
-        __syncthreads();
-
-        // 2-2 L1 test
-        hit_L1();
-        printf("2-2 loading over , step is : %d\n", step);
-        __syncthreads();
-        //保存4次的访问时间
+        hit_L1(3);
+        //保存访问时间
         s_tvalue[0] = step;
         s_tvalue[1] = time;
-        for (i = 0; i <= step * time; i++)
+        for (i = 0; i <= step * time + 2; i++)
         {
             dura[i] = s_tvalue[i];
         }
         //
 
-        printf("Duration 2 over. dura[0] : %.0f\n", dura[0]);
+        printf("Test cache over. step : %.0f, Total times: %.0f\n", dura[0], dura[1]);
     }
     // __syncthreads();
     __gpu_sync(4);
@@ -252,9 +245,20 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
         fprintf(stderr, "fopen() failed.\n");
         exit(EXIT_FAILURE);
     }
-    fprintf(fp, "step,1_1_L1,1_2_L1,2_1_L1,2_2_L1\n");
+
     int step = dura[0];
     int time = dura[1];
+
+    fprintf(fp, "step,");
+    for (int i = 1; i <= 2; i++)
+    {
+        for (int j = 1; j <= time / 2; j++)
+        {
+            fprintf(fp, "%d-%dhit,", i, j);
+        }
+    }
+    fprintf(fp, "\n");
+
     for (int i = 0; i < step; i++)
     {
         fprintf(fp, "%d,", i + 1);
