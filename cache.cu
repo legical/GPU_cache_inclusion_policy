@@ -241,10 +241,10 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
         for (i = 0; i < step; i++)
         {
-            dura[0][i] = s_tvalue[i];
-            dura[1][i] = s1_tvalue[i];
-            dura[2][i] = s2_1_tvalue[i];
-            dura[3][i] = s2_tvalue[i];
+            *(dura[0] + i) = s_tvalue[i];
+            *(dura[1] + i) = s1_tvalue[i];
+            *(dura[2] + i) = s2_1_tvalue[i];
+            *(dura[3] + i) = s2_tvalue[i];
             if (i % 32 == 0)
                 printf("duration i : %d, step is : %d \n", i, step);
         }
