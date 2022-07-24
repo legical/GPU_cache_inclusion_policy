@@ -170,10 +170,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                 // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
             }
         // printf("step is : %d\n", step);
-
-        __gpu_sync(1);
+        
         printf("Kernel %d 's block %d loading L1 cache in sm %d over.\n", kernelID, blockid, smid);
-
+        __gpu_sync(1);
         // hit L1 cache function
         auto hit_L1 = [&](int count)
         {

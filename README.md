@@ -1,7 +1,7 @@
 # 使用（root）
 ## 编译
 ```
-nvcc -arch sm_86 -lcuda -o testmc multi_kernel.cu util.cu
+nvcc -arch sm_86 -lcuda -o testmc multi_cache.cu util.cu
 ```
 
 ## 开启MPS 
