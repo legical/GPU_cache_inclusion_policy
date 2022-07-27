@@ -211,7 +211,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         else if (kL1hit)
         {
-            waitSleep(120.0);
+            waitSleep(200.0);
         }
 
         // __gpu_sync(2);
