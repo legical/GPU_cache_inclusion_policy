@@ -140,12 +140,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
     uint32_t threadid = getThreadIdInBlock();
-    __syncthreads();
+    
     printf("Here is kernel %d Blcok %d , running in sm %d.\n", kernelID, blockid, smid);
 
     bool kL1hit = false;
     bool kL2hit = false;
-
     //程序0运行在sm0上的block才运行
     if (kernelID == 0 && smid == 0)
     {
@@ -156,8 +155,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         kL2hit = true;
     }
-
-    if (kL1hit && kL2hit)
+    __syncthreads();
+    if (kL1hit || kL2hit)
     {
         // L1 hit
         i = threadid;
