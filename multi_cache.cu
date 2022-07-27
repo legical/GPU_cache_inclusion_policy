@@ -99,7 +99,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t blockid = getBlockIDInGrid();
     uint32_t threadid = getThreadIdInBlock();
 
-    auto waitSleep = [&](float wait){
+    auto waitSleep = [&](float wait)
+    {
         DATATYPE wait_Start_time = get_time(clockRate);
         float wait_dura = 0;
         DATATYPE wait_End_time = get_time(clockRate);
@@ -110,8 +111,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             wait_End_time = get_time(clockRate);
             wait_dura = wait_End_time - wait_Start_time;
         }
-        
-
     };
 
     printf("Here is kernel %d Blcok %d , running in sm %d.\n", kernelID, blockid, smid);
@@ -128,22 +127,28 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         kL2hit = true;
     }
+
+    
+    for (int j = 0; j < 5; j++)
+    {
+        i = threadid;
+        step = 0;
+        while (i < L1_limit)
+        {
+            i = GPU_array_L1[i];
+            step++;
+            // if (threadid == 0 && blockid == 0)
+            // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
+        }
+    }
+
     __syncthreads();
+
     if (kL1hit || kL2hit)
     {
-        const uint32_t SM_size = 24 * 1024 / sizeof(DATATYPE);
+        const uint32_t SM_size = 36 * 1024 / sizeof(DATATYPE);
         __shared__ DATATYPE s_tvalue[SM_size];
         // L1 hit
-        i = threadid;
-        for (int j = 0; j < 5; j++)
-            while (i < L1_limit)
-            {
-                i = GPU_array_L1[i];
-                step++;
-                // if (threadid == 0 && blockid == 0)
-                // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
-            }
-        // printf("step is : %d\n", step);
 
         printf("Kernel %d 's block %d loading L1 cache in sm %d over.\n", kernelID, blockid, smid);
         // __gpu_sync(2);
@@ -173,6 +178,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         };
         time = 0;
         printf("\nHere is kernel %d Blcok %d , running in sm %d.\n", kernelID, blockid, smid);
+
         // Load L1 cache
         if (kL1hit)
         {
@@ -182,10 +188,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             float durationL1 = get_time(clockRate) - L1time;
             printf("Here is kernel %d Blcok %d , hit_L1(3) duration is %.6f.\n", kernelID, blockid, durationL1);
         }
-        else if(kL2hit){
+        else if (kL2hit)
+        {
             waitSleep(2.0);
         }
-        
+
         // __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L2.\n", kernelID, blockid, smid);
 
@@ -199,11 +206,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             }
             float durationL2 = get_time(clockRate) - L2time;
             printf("\n Kernel %d 's Block %d in sm %d || Loading data into L2 cost %.6f.\n", kernelID, blockid, smid, durationL2);
-        }else if (kL1hit)
+        }
+        else if (kL1hit)
         {
             waitSleep(100.0);
         }
-        
 
         printf("start sys 3.\n");
         // __gpu_sync(2);
@@ -223,7 +230,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             //
 
             printf("\nKernel %d's Block %d in sm %d test cache over. step : %.0f, Total times: %.0f\n", kernelID, blockid, smid, dura[0], dura[1]);
-        }else if(kL2hit){
+        }
+        else if (kL2hit)
+        {
             waitSleep(50.0);
         }
     }
