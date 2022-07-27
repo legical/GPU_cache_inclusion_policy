@@ -149,6 +149,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     {
         const uint32_t SM_size = 36 * 1024 / sizeof(DATATYPE);
         __shared__ DATATYPE s_tvalue[SM_size];
+        printf("SM_size is %d.\n",SM_size);
         // L1 hit
 
         printf("Kernel %d 's block %d loading L1 cache in sm %d over.\n", kernelID, blockid, smid);
