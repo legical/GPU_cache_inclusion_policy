@@ -213,6 +213,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         {
             hit_L1(3);
             //保存访问时间
+            printf("saving data...\n");
             s_tvalue[0] = step;
             s_tvalue[1] = time;
             for (i = 0; i < step * time + 2; i++)
@@ -223,7 +224,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
             printf("\nKernel %d's Block %d in sm %d test cache over. step : %.0f, Total times: %.0f\n", kernelID, blockid, smid, dura[0], dura[1]);
         }else if(kL2hit){
-            waitSleep(5.0);
+            waitSleep(50.0);
         }
     }
     //等待L1 load again完毕
