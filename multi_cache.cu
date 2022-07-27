@@ -210,7 +210,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         else if (kL1hit)
         {
-            waitSleep(100.0);
+            waitSleep(150.0);
         }
 
         printf("start sys 3.\n");
@@ -234,7 +234,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         else if (kL2hit)
         {
-            waitSleep(50.0);
+            waitSleep(80.0);
         }
     }
     //等待L1 load again完毕
