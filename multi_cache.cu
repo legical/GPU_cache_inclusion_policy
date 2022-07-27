@@ -94,8 +94,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t step = 0;
     uint32_t time = 0;
     // shared memory size : 24KB
-    const uint32_t SM_size = 24 * 1024 / sizeof(DATATYPE);
-    __shared__ DATATYPE s_tvalue[SM_size];
 
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
@@ -118,6 +116,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     __syncthreads();
     if (kL1hit || kL2hit)
     {
+        const uint32_t SM_size = 24 * 1024 / sizeof(DATATYPE);
+        __shared__ DATATYPE s_tvalue[SM_size];
         // L1 hit
         i = threadid;
         for (int j = 0; j < 5; j++)
