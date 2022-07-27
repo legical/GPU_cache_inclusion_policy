@@ -172,7 +172,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                     //     printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
                 }
 
-                printf("\nKernel %d 's block %d in sm %d || %d——%d testing L1 over, %d duration is %.4f\n", kernelID, blockid, smid, (time + count) / count, time % count + 1, index + (step * time), s_tvalue[index + (step * time)]);
+                printf("\nKernel %d 's block %d in sm %d || %d——%d testing L1 over, %d duration is %.4f\n", kernelID, blockid, smid, (time + count) / count, time % count + 1, index + (step * time), s_tvalue[index - 1 + (step * time)]);
                 ++time;
                 // __syncthreads();
             }
