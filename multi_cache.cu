@@ -99,6 +99,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t blockid = getBlockIDInGrid();
     uint32_t threadid = getThreadIdInBlock();
 
+    //用延时来同步
     auto waitSleep = [&](float wait)
     {
         DATATYPE wait_Start_time = get_time(clockRate);
