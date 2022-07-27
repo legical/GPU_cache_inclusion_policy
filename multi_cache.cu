@@ -129,7 +129,6 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         kL2hit = true;
     }
 
-    
     for (int j = 0; j < 5; j++)
     {
         i = 0;
@@ -147,9 +146,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
     if (kL1hit || kL2hit)
     {
-        const uint32_t SM_size = 36 * 1024 / sizeof(DATATYPE);
+        const uint32_t SM_size = 48 * 1024 / sizeof(DATATYPE);
         __shared__ DATATYPE s_tvalue[SM_size];
-        printf("SM_size is %d.\n",SM_size);
+        printf("SM_size is %d.\n", SM_size);
         // L1 hit
 
         printf("Kernel %d 's block %d loading L1 cache in sm %d over.\n", kernelID, blockid, smid);
@@ -160,7 +159,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         {
             for (int j = 0; j < count; j++)
             {
-                uint32_t index = 1;
+                uint32_t index = 0;
                 i = 0;
                 DATATYPE Start_time = get_time(clockRate);
                 while (i < L1_limit)
@@ -168,7 +167,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                     i = GPU_array_L1[i];
                     ++index;
                     DATATYPE End_time = get_time(clockRate);
-                    s_tvalue[index + (step * time)] = End_time - Start_time;
+                    s_tvalue[index - 1 + (step * time)] = End_time - Start_time;
                     // if ((index + (step * time)) % 32 == 0)
                     //     printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
                 }
@@ -225,11 +224,11 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             hit_L1(3);
             //保存访问时间
             printf("saving data...\n");
-            s_tvalue[0] = step;
-            s_tvalue[1] = time;
-            for (i = 0; i < step * time + 2; i++)
+            dura[0] = step;
+            dura[1] = time;
+            for (i = 0; i < step * time; i++)
             {
-                dura[i] = s_tvalue[i];
+                dura[i + 2] = s_tvalue[i];
             }
             //
 
