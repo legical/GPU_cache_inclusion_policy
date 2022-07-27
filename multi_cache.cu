@@ -196,6 +196,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
 
         // __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L2.\n", kernelID, blockid, smid);
+        printf("Kernel %d start sys 2.\n", kernelID);
 
         // Load L2 cache
         if (kL2hit)
@@ -210,12 +211,13 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         else if (kL1hit)
         {
-            waitSleep(150.0);
+            waitSleep(120.0);
         }
 
-        printf("start sys 3.\n");
         // __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L1 again. \n", kernelID, blockid, smid);
+        printf("Kernel %d start sys 3.\n", kernelID);
+
         // Load L1 cache again
         if (kL1hit)
         {
