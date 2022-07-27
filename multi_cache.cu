@@ -131,7 +131,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     
     for (int j = 0; j < 5; j++)
     {
-        i = threadid;
+        i = 0;
         step = 0;
         while (i < L1_limit)
         {
