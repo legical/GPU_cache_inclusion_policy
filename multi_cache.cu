@@ -172,6 +172,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         
         printf("Kernel %d 's block %d loading L1 cache in sm %d over.\n", kernelID, blockid, smid);
         __gpu_sync(1);
+
         // hit L1 cache function
         auto hit_L1 = [&](int count)
         {
@@ -196,6 +197,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             }
         };
         time = 0;
+        printf("sys 1 over.\n");
         // Load L1 cache
         if (kL1hit)
         {
