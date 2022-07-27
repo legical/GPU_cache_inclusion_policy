@@ -99,6 +99,21 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t blockid = getBlockIDInGrid();
     uint32_t threadid = getThreadIdInBlock();
 
+    auto waitSleep = [&](float wait){
+        DATATYPE wait_Start_time = get_time(clockRate);
+        float wait_dura = 0;
+        DATATYPE wait_End_time = get_time(clockRate);
+
+        wait_dura = wait_End_time - wait_Start_time;
+        while (wait_dura < wait)
+        {
+            wait_End_time = get_time(clockRate);
+            wait_dura = wait_End_time - wait_Start_time;
+        }
+        
+
+    };
+
     printf("Here is kernel %d Blcok %d , running in sm %d.\n", kernelID, blockid, smid);
 
     bool kL1hit = false;
@@ -167,12 +182,10 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             float durationL1 = get_time(clockRate) - L1time;
             printf("Here is kernel %d Blcok %d , hit_L1(3) duration is %.6f.\n", kernelID, blockid, durationL1);
         }
-        // __syncthreads();
-        // if (threadid == 0)
-        printf("start sys 2.\n");
-        //等待L1 hit完毕
-        // fence[0] += blockid * threadid;
-        // __threadfence();
+        else if(kL2hit){
+            waitSleep(2.0);
+        }
+        
         // __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L2.\n", kernelID, blockid, smid);
 
@@ -186,10 +199,14 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             }
             float durationL2 = get_time(clockRate) - L2time;
             printf("\n Kernel %d 's Block %d in sm %d || Loading data into L2 cost %.6f.\n", kernelID, blockid, smid, durationL2);
+        }else if (kL1hit)
+        {
+            waitSleep(100.0);
         }
+        
 
         printf("start sys 3.\n");
-        __gpu_sync(2);
+        // __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L1 again. \n", kernelID, blockid, smid);
         // Load L1 cache again
         if (kL1hit)
@@ -205,9 +222,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             //
 
             printf("\nKernel %d's Block %d in sm %d test cache over. step : %.0f, Total times: %.0f\n", kernelID, blockid, smid, dura[0], dura[1]);
+        }else if(kL2hit){
+            waitSleep(5.0);
         }
-        // __syncthreads();
-        __gpu_sync(2);
     }
     //等待L1 load again完毕
     // fence[1] += blockid * threadid;
