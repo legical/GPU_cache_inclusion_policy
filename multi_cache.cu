@@ -21,24 +21,31 @@ using namespace std;
 #define L1_limit 16384
 // #define factor 0.8
 // lock-based
-__device__ volatile int g_mutex1 = 0;
-__device__ volatile int g_mutex2 = 0;
-__device__ volatile int g_mutex3 = 0;
-__device__ volatile int g_mutex4 = 0;
+__device__ volatile int g_mutex = 0;
+// __device__ volatile int g_mutex1 = 0;
+// __device__ volatile int g_mutex2 = 0;
+// __device__ volatile int g_mutex3 = 0;
+// __device__ volatile int g_mutex4 = 0;
 
-const char* MyGetRuntimeError(cudaError_t error) {
-    if (error != cudaSuccess) {
+const char *MyGetRuntimeError(cudaError_t error)
+{
+    if (error != cudaSuccess)
+    {
         return cudaGetErrorString(error);
-    } else
+    }
+    else
         return NULL;
 }
 
-char* MyGetdeviceError(CUresult error) {
-    if (error != CUDA_SUCCESS) {
-        char* charerr = (char*)malloc(100);
-        cuGetErrorString(error, (const char**)&charerr);
+char *MyGetdeviceError(CUresult error)
+{
+    if (error != CUDA_SUCCESS)
+    {
+        char *charerr = (char *)malloc(100);
+        cuGetErrorString(error, (const char **)&charerr);
         return charerr;
-    } else
+    }
+    else
         return NULL;
 }
 
@@ -49,72 +56,25 @@ __device__ void __gpu_sync(int times)
     int goalVal = 2;
     int tid_in_block = getThreadIdInBlock();
 
-    // auto wait = [goalVal, times](int g_mutex)
-    // {
-    //     printf("Block %d 's mutex is %d , Times: %d .\n", getBlockIDInGrid(), g_mutex, times);
-    //     // only when all blocks add 1 go g_mutex
-    //     // will g_mutex equal to goalVal
-    //     while (g_mutex != goalVal)
-    //     {
-    //         // Do nothing here. Until for synchronization
-    //     }
-    // };
-    // only thread 0 is used for synchronization
     if (tid_in_block == 0)
     {
-        switch (times)
+        atomicAdd((int *)&g_mutex, 1);
+        printf("Block %d 's mutex is %d , kernel syn goal: %d.\n", getBlockIDInGrid(), g_mutex, times);
+        while (g_mutex != goalVal)
         {
-        case 1:
-            atomicAdd((int *)&g_mutex1, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex1, times);
-            // only when all blocks add 1 go g_mutex
-            // will g_mutex equal to goalVal
-            while (g_mutex1 != goalVal)
-            {
-                printf("");
-                // Do nothing here. Until for synchronization
-            }
-            break;
-        case 2:
-            atomicAdd((int *)&g_mutex2, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex2, times);
-            // only when all blocks add 1 go g_mutex
-            // will g_mutex equal to goalVal
-            while (g_mutex2 != goalVal)
-            {
-                printf("");
-                // Do nothing here. Until for synchronization
-            }
-            break;
-        case 3:
-            atomicAdd((int *)&g_mutex3, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex3, times);
-            // only when all blocks add 1 go g_mutex
-            // will g_mutex equal to goalVal
-            while (g_mutex3 != goalVal)
-            {
-                printf("");
-                // Do nothing here. Until for synchronization
-            }
-            break;
-        case 4:
-            atomicAdd((int *)&g_mutex4, 1);
-            printf("Block %d 's mutex is %d , kernel syn times: %d.\n", getBlockIDInGrid(), g_mutex4, times);
-            // only when all blocks add 1 go g_mutex
-            // will g_mutex equal to goalVal
-            while (g_mutex4 != goalVal)
-            {
-                printf("");
-                // Do nothing here. Until for synchronization
-            }
-            break;
+            printf("");
+            // Do nothing here. Until for synchronization
+        }
 
-        default:
-            printf("Error sys times: %d .  Exit.\n", times);
-            break;
+        //到达屏障后
+        atomicAdd((int *)&g_mutex, -1);
+        printf("Syn over, Block %d 's mutex--, now is %d.\n", getBlockIDInGrid(), g_mutex);
+        while (g_mutex != 0)
+        {
+            printf("");
+            // Do nothing here. Until mutex to 0
         }
     }
-    __syncthreads();
 }
 
 //初始化数组，a[i]=0
@@ -140,7 +100,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
     uint32_t smid = getSMID();
     uint32_t blockid = getBlockIDInGrid();
     uint32_t threadid = getThreadIdInBlock();
-    
+
     printf("Here is kernel %d Blcok %d , running in sm %d.\n", kernelID, blockid, smid);
 
     bool kL1hit = false;
@@ -169,9 +129,9 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                 // printf("Thread : %d \t step : %d \t i : %d \t Limit is %d\n", threadid, step, i, L1_limit);
             }
         // printf("step is : %d\n", step);
-        
+
         printf("Kernel %d 's block %d loading L1 cache in sm %d over.\n", kernelID, blockid, smid);
-        __gpu_sync(1);
+        // __gpu_sync(2);
 
         // hit L1 cache function
         auto hit_L1 = [&](int count)
@@ -187,8 +147,8 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
                     ++index;
                     DATATYPE End_time = get_time(clockRate);
                     s_tvalue[index + (step * time)] = End_time - Start_time;
-                    if ((index + (step * time)) % 32 == 0)
-                        printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
+                    // if ((index + (step * time)) % 32 == 0)
+                    //     printf("%d——%d testing L1, %d duration is %.4f\n", (time + 2) / 2, time + 1, index + (step * time), s_tvalue[index + (step * time)]);
                 }
 
                 printf("\nKernel %d 's block %d in sm %d || %d——%d testing L1 over, %d duration is %.4f\n", kernelID, blockid, smid, (time + count) / count, time % count + 1, index + (step * time), s_tvalue[index + (step * time)]);
@@ -197,12 +157,15 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             }
         };
         time = 0;
-        printf("sys 1 over.\n");
+        printf("\nHere is kernel %d Blcok %d , running in sm %d.\n", kernelID, blockid, smid);
         // Load L1 cache
         if (kL1hit)
         {
+            DATATYPE L1time = get_time(clockRate);
             // 1-1 test L1
             hit_L1(3);
+            float durationL1 = get_time(clockRate) - L1time;
+            printf("Here is kernel %d Blcok %d , hit_L1(3) duration is %.6f.\n", kernelID, blockid, durationL1);
         }
         // __syncthreads();
         // if (threadid == 0)
@@ -210,21 +173,23 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         //等待L1 hit完毕
         // fence[0] += blockid * threadid;
         // __threadfence();
-        __gpu_sync(2);
+        // __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L2.\n", kernelID, blockid, smid);
 
         // Load L2 cache
         if (kL2hit)
         {
+            DATATYPE L2time = get_time(clockRate);
             for (i = threadid; i < L2_SIZE;)
             {
                 i = GPU_array_L2[i];
             }
-            printf("\n Kernel %d 's Block %d in sm %d || Loading data into L2 cache over.\n", kernelID, blockid, smid);
+            float durationL2 = get_time(clockRate) - L2time;
+            printf("\n Kernel %d 's Block %d in sm %d || Loading data into L2 cost %.6f.\n", kernelID, blockid, smid, durationL2);
         }
 
         printf("start sys 3.\n");
-        __gpu_sync(3);
+        __gpu_sync(2);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L1 again. \n", kernelID, blockid, smid);
         // Load L1 cache again
         if (kL1hit)
@@ -242,7 +207,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             printf("\nKernel %d's Block %d in sm %d test cache over. step : %.0f, Total times: %.0f\n", kernelID, blockid, smid, dura[0], dura[1]);
         }
         // __syncthreads();
-        __gpu_sync(4);
+        __gpu_sync(2);
     }
     //等待L1 load again完毕
     // fence[1] += blockid * threadid;
@@ -294,7 +259,8 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
     // printf("init shared memory size over.\n");
     std::thread mythread[CONTEXT_POOL_SIZE];
     for (int kernelID = 0; kernelID < CONTEXT_POOL_SIZE; kernelID++)
-        mythread[kernelID] = std::thread([&, kernelID](){
+        mythread[kernelID] = std::thread([&, kernelID]()
+                                         {
             int                 numSms = 0;
             CUexecAffinityParam affinity;
 
@@ -323,8 +289,7 @@ void main_test(int clockRate, DATATYPE *array_L1, DATATYPE *array_L2, DATATYPE *
             }
             // kernel here
             cache<<<blocks, threads>>>(clockRate, GPU_array_L1, GPU_array_L2, GPU_dura,kernelID);
-            cudaDeviceSynchronize(); 
-    });
+            cudaDeviceSynchronize(); });
     for (int kernelID = 0; kernelID < CONTEXT_POOL_SIZE; kernelID++)
         mythread[kernelID].join();
     cudaDeviceReset();
