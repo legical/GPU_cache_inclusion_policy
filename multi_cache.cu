@@ -204,7 +204,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
         }
         // __syncthreads();
         // if (threadid == 0)
-
+        printf("start sys 2.\n");
         //等待L1 hit完毕
         // fence[0] += blockid * threadid;
         // __threadfence();
@@ -221,6 +221,7 @@ __global__ void cache(int clockRate, DATATYPE *GPU_array_L1, DATATYPE *GPU_array
             printf("\n Kernel %d 's Block %d in sm %d || Loading data into L2 cache over.\n", kernelID, blockid, smid);
         }
 
+        printf("start sys 3.\n");
         __gpu_sync(3);
         printf("I'm Kernel %d 's Block %d in sm %d. Note: Start hit L1 again. \n", kernelID, blockid, smid);
         // Load L1 cache again
